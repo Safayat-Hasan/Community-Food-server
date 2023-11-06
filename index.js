@@ -29,6 +29,12 @@ async function run() {
 
     // foods
 
+    app.get('/foods', async (req, res) => {
+      const cursor = foodCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+
     app.post('/foods', async (req, res) => {
       const newFood = req.body;
       console.log(newFood);
