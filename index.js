@@ -26,11 +26,18 @@ async function run() {
     // await client.connect();
 
     const foodCollection = client.db('foodsDB').collection('foods');
+    const requestedFoodCollection = client.db('foodsDB').collection('requestedFoods');
 
     // foods
 
     app.get('/foods', async (req, res) => {
       const cursor = foodCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+
+    app.get('/requestedFoods', async (req, res) => {
+      const cursor = requestedFoodCollection.find();
       const result = await cursor.toArray();
       res.send(result);
     })
@@ -46,6 +53,13 @@ async function run() {
       const newFood = req.body;
       console.log(newFood);
       const result = await foodCollection.insertOne(newFood);
+      res.send(result);
+    })
+
+    app.post('/requestedFoods', async (req, res) => {
+      const requestedFood = req.body;
+      console.log(requestedFood);
+      const result = await requestedFoodCollection.insertOne(requestedFood);
       res.send(result);
     })
 
