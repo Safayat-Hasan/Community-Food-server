@@ -36,6 +36,22 @@ async function run() {
       res.send(result);
     })
 
+    app.get('/foods', async (req, res) => {
+      let query = {};
+      if (req.query?.donator_email) {
+        query = { donator_email: req.query.donator_email }
+      }
+      const result = await foodCollection.find(query).toArray();
+      res.send(result);
+    })
+
+    app.get('/foods/manage/:donator_email', async (req, res) => {
+      const donator_email = req.params.donator_email;
+      const query = { donator_email: donator_email };
+      const result = await foodCollection.find(query).toArray();
+      res.send(result);
+    })
+
     app.get('/requestedFoods', async (req, res) => {
       const cursor = requestedFoodCollection.find();
       const result = await cursor.toArray();
@@ -77,9 +93,9 @@ run().catch(console.dir);
 
 
 app.get('/', (req, res) => {
-    res.send("Community-food server running")
+  res.send("Community-food server running")
 })
 
 app.listen(port, () => {
-    console.log(`Community-food server running on port: ${port}`)
+  console.log(`Community-food server running on port: ${port}`)
 })
