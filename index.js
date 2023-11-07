@@ -49,6 +49,13 @@ async function run() {
       res.send(result);
     })
 
+    app.get('/requestedFoods/manage/:user_email', async (req, res) => {
+      const user_email = req.params.user_email;
+      const query = { user_email: user_email };
+      const result = await requestedFoodCollection.find(query).toArray();
+      res.send(result);
+    })
+
     app.get('/foods/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
