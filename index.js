@@ -1,12 +1,20 @@
 const express = require('express');
 const cors = require('cors');
+// const cookieParser = require('cookie-parser');
+// const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 const port = process.env.PORT || 5000;
 
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:5173/'
+  ],
+  credentials: true
+}));
 app.use(express.json());
+// app.use(cookieParser());
 
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.nyvh0ei.mongodb.net/?retryWrites=true&w=majority`;
@@ -20,6 +28,27 @@ const client = new MongoClient(uri, {
   }
 });
 
+const logger = (req, res, next) => {
+  console.log('{log: info}', req.method, req.url);
+  next();
+}
+
+const verifyToken = (req, res, next) => {
+  const token = req?.cookies?.token;
+  // console.log('token middle', token);
+  if (!token) {
+    return res.status(401).send({ message: 'unauthorized access' })
+  }
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).send({ message: 'unauthorized access' })
+    }
+    req.user = decoded;
+    next();
+  })
+  // next();
+}
+
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
@@ -27,6 +56,25 @@ async function run() {
 
     const foodCollection = client.db('foodsDB').collection('foods');
     const requestedFoodCollection = client.db('foodsDB').collection('requestedFoods');
+
+    app.post('/jwt', async (req, res) => {
+      const user = req.body;
+      console.log('user for token', user);
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1hr' });
+
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none'
+      })
+        .send({ success: true });
+    })
+
+    app.post('/logout', async (req, res) => {
+      const user = req.body;
+      console.log('logout', user);
+      res.clearCookie('token', { maxAge: 0 }).send({ success: true })
+    })
 
     // foods
 
@@ -43,34 +91,34 @@ async function run() {
       res.send(result);
     })
 
-    app.get('/foods/manage/:donator_email', async (req, res) => {
+    app.get('/foods/manage/:donator_email', logger, verifyToken, async (req, res) => {
       const donator_email = req.params.donator_email;
       const query = { donator_email: donator_email };
       const result = await foodCollection.find(query).toArray();
       res.send(result);
     })
 
-    app.get('/requestedFoods', async (req, res) => {
+    app.get('/requestedFoods', logger, verifyToken, async (req, res) => {
       const cursor = requestedFoodCollection.find();
       const result = await cursor.toArray();
       res.send(result);
     })
 
-    app.get('/requestedFoods/:food_id', async (req, res) => {
+    app.get('/requestedFoods/:food_id', logger, verifyToken, async (req, res) => {
       const food_id = req.params.food_id;
       const query = { food_id: food_id };
       const result = await requestedFoodCollection.findOne(query);
       res.send(result);
     })
 
-    app.get('/requestedFoods/manage/:user_email', async (req, res) => {
+    app.get('/requestedFoods/manage/:user_email', logger, verifyToken, async (req, res) => {
       const user_email = req.params.user_email;
       const query = { user_email: user_email };
       const result = await requestedFoodCollection.find(query).toArray();
       res.send(result);
     })
 
-    app.get('/foods/:id', async (req, res) => {
+    app.get('/foods/:id', logger, verifyToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await foodCollection.findOne(query);
