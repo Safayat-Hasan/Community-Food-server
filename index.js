@@ -49,6 +49,13 @@ async function run() {
       res.send(result);
     })
 
+    app.get('/requestedFoods/:food_id', async (req, res) => {
+      const food_id = req.params.food_id;
+      const query = { food_id: food_id };
+      const result = await requestedFoodCollection.findOne(query);
+      res.send(result);
+    })
+
     app.get('/requestedFoods/manage/:user_email', async (req, res) => {
       const user_email = req.params.user_email;
       const query = { user_email: user_email };
@@ -89,6 +96,20 @@ async function run() {
         },
       };
       const result = await foodCollection.updateOne(filter, updateDoc, options);
+      res.send(result);
+    })
+
+    app.patch('/requestedFoods/:food_id', async (req, res) => {
+      const food_id = req.params.food_id;
+      const filter = { food_id: food_id };
+      const updatedFood = req.body;
+      console.log(updatedFood);
+      const updateDoc = {
+        $set: {
+          status: updatedFood.status
+        },
+      };
+      const result = await requestedFoodCollection.updateOne(filter, updateDoc);
       res.send(result);
     })
 
