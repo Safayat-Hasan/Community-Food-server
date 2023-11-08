@@ -36,6 +36,13 @@ async function run() {
       res.send(result);
     })
 
+    app.get('/foods/search/:food_name', async (req, res) => {
+      const food_name = req.params.food_name;
+      const query = { food_name: food_name };
+      const result = await foodCollection.find(query).toArray();
+      res.send(result);
+    })
+
     app.get('/foods/manage/:donator_email', async (req, res) => {
       const donator_email = req.params.donator_email;
       const query = { donator_email: donator_email };
@@ -110,6 +117,20 @@ async function run() {
         },
       };
       const result = await requestedFoodCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    })
+
+    app.patch('/foods/:_id', async (req, res) => {
+      const _id = req.params._id;
+      const filter = { _id: new ObjectId(_id) };
+      const updatedFood = req.body;
+      console.log(updatedFood);
+      const updateDoc = {
+        $set: {
+          status: updatedFood.status
+        },
+      };
+      const result = await foodCollection.updateOne(filter, updateDoc);
       res.send(result);
     })
 
