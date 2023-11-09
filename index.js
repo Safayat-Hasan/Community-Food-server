@@ -1,20 +1,22 @@
 const express = require('express');
 const cors = require('cors');
-// const cookieParser = require('cookie-parser');
-// const jwt = require('jsonwebtoken');
 require('dotenv').config();
+const cookieParser = require('cookie-parser');
+const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 const port = process.env.PORT || 5000;
 
 app.use(cors({
   origin: [
-    'http://localhost:5173/'
+    'http://localhost:5173',
+    'community-food-9391e.web.app',
+    'community-food-9391e.firebaseapp.com',
   ],
   credentials: true
 }));
 app.use(express.json());
-// app.use(cookieParser());
+app.use(cookieParser());
 
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.nyvh0ei.mongodb.net/?retryWrites=true&w=majority`;
@@ -64,8 +66,8 @@ async function run() {
 
       res.cookie('token', token, {
         httpOnly: true,
-        secure: true,
-        sameSite: 'none'
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
       })
         .send({ success: true });
     })
@@ -96,12 +98,14 @@ async function run() {
       const query = { donator_email: donator_email };
       const result = await foodCollection.find(query).toArray();
       res.send(result);
+      // done
     })
 
     app.get('/requestedFoods', logger, verifyToken, async (req, res) => {
       const cursor = requestedFoodCollection.find();
       const result = await cursor.toArray();
       res.send(result);
+      // done
     })
 
     app.get('/requestedFoods/:food_id', logger, verifyToken, async (req, res) => {
@@ -109,6 +113,7 @@ async function run() {
       const query = { food_id: food_id };
       const result = await requestedFoodCollection.findOne(query);
       res.send(result);
+      // done
     })
 
     app.get('/requestedFoods/manage/:user_email', logger, verifyToken, async (req, res) => {
@@ -116,6 +121,7 @@ async function run() {
       const query = { user_email: user_email };
       const result = await requestedFoodCollection.find(query).toArray();
       res.send(result);
+      // done
     })
 
     app.get('/foods/:id', logger, verifyToken, async (req, res) => {
@@ -123,6 +129,7 @@ async function run() {
       const query = { _id: new ObjectId(id) };
       const result = await foodCollection.findOne(query);
       res.send(result);
+      // done
     })
 
     app.post('/foods', async (req, res) => {
