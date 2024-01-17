@@ -10,8 +10,9 @@ const port = process.env.PORT || 5000;
 app.use(cors({
   origin: [
     'http://localhost:5173',
-    'community-food-9391e.web.app',
-    'community-food-9391e.firebaseapp.com',
+    'https://6557b9f06713b80fbe670e50--magical-biscochitos-6d36e4.netlify.app',
+    'https://community-food-9391e.web.app',
+    'https://community-food-9391e.firebaseapp.com',
   ],
   credentials: true
 }));
@@ -39,11 +40,11 @@ const verifyToken = (req, res, next) => {
   const token = req?.cookies?.token;
   // console.log('token middle', token);
   if (!token) {
-    return res.status(401).send({ message: 'unauthorized access' })
+    return res.status(401).send({ message: 'unauthorized access . token not found' })
   }
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
     if (err) {
-      return res.status(401).send({ message: 'unauthorized access' })
+      return res.status(401).send({ message: 'unauthorized access . token error' })
     }
     req.user = decoded;
     next();
